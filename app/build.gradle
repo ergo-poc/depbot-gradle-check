@@ -1,0 +1,37 @@
+buildscript {
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+plugins { id "org.sonarqube" version "2.6.2" }
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+
+bootJar {
+    classifier = ''
+}
+
+jar {
+	baseName = 'app'
+	version = '1.0.0-RELEASE'
+	enabled = false
+}
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+
+dependencies {
+	compile project(':lib')
+
+	// Healthcheck
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile 'junit:junit:4.13.2'
+	testCompile group: 'uk.org.lidalia', name: 'slf4j-test', version: '1.2.0'
+}

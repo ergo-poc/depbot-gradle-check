@@ -1,0 +1,78 @@
+buildscript {
+	ext {
+        springBootVersion = '2.2.0.RELEASE'
+    }
+	repositories {
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
+plugins {
+  id 'com.github.spotbugs' version '4.7.1'
+  id 'org.owasp.dependencycheck' version '7.0.4.1'
+}
+
+// Config for all projects (root and subprojects)
+allprojects {
+	buildscript {
+		repositories {
+			gradlePluginPortal()
+		}
+	}
+
+	apply plugin: 'org.owasp.dependencycheck'
+	apply plugin: 'com.github.spotbugs'
+
+
+	// Extend compilation checks
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+	}
+
+	// https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
+	//ext['log4j2.version'] = '2.15.1'
+	//ext['logback.version'] = '1.2.11'
+}
+
+// Config for subprojects only
+subprojects {
+	repositories {
+		mavenCentral()
+	}
+
+	// XML and HTML Format for OWASP check
+	dependencyCheck {
+    	format = 'ALL'
+		// https://www.first.org/cvss/
+		// fail on high+critical+medium
+		failBuildOnCVSS = 5
+  		failOnError = true
+	}
+
+	// Standard project properties
+	version = '1.0.0-RELEASE'
+
+	// Needed to import the project into Eclipse
+	apply plugin: 'eclipse'
+
+	// Java build support
+	apply plugin: 'java'
+
+	// https://docs.openshift.com/container-platform/3.9/using_images/other_images/jenkins_slaves.html#gradle-builds
+	tasks.withType(JavaCompile) {
+		//disable compilation in a separate daemon process
+		options.fork = false
+		options.encoding = "UTF-8"
+	}
+
+	test {
+		reports {
+			junitXml.enabled = true
+			html.enabled = true
+		}
+	}
+
+}
